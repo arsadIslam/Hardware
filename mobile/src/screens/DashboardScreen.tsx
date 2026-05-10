@@ -474,7 +474,7 @@ export function DashboardScreen(): React.JSX.Element {
             style={[styles.fab, { bottom: 40 + insets.bottom * 0.35 }]}
             activeOpacity={0.9}
             onPress={() => {
-              /* Navigate to create sale when screen exists */
+              navigation.navigate('CreateSale');
             }}>
             <Plus color="#fff" size={34} strokeWidth={2.75} />
             <Text style={styles.fabCap}>Create Sales</Text>

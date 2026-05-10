@@ -74,3 +74,47 @@ export async function createProduct(
   const { data } = await httpClient.post<Product>('/products', body);
   return data;
 }
+
+export type UpdateProductPayload = {
+  product_id: string;
+  name: string;
+  selling_price: number;
+  buying_price?: number | null;
+  available_quantity: number;
+  quantity_unit?: string | null;
+  location?: string | null;
+};
+
+export async function fetchProduct(id: number): Promise<Product> {
+  const { data } = await httpClient.get<Product>(`/products/${id}`);
+  return data;
+}
+
+export async function updateProduct(
+  id: number,
+  payload: UpdateProductPayload,
+): Promise<Product> {
+  const body: Record<string, unknown> = {
+    product_id: payload.product_id.trim(),
+    name: payload.name.trim(),
+    selling_price: payload.selling_price,
+    available_quantity: payload.available_quantity,
+  };
+  const bp = payload.buying_price;
+  if (bp != null && !Number.isNaN(bp)) {
+    body.buying_price = bp;
+  } else {
+    body.buying_price = null;
+  }
+  const qu = payload.quantity_unit?.trim();
+  body.quantity_unit = qu !== '' ? qu : null;
+  const loc = payload.location?.trim();
+  body.location = loc !== '' ? loc : null;
+
+  const { data } = await httpClient.put<Product>(`/products/${id}`, body);
+  return data;
+}
+
+export async function deleteProduct(id: number): Promise<void> {
+  await httpClient.delete(`/products/${id}`);
+}

@@ -5,6 +5,8 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { AddProductScreen } from '../screens/AddProductScreen';
 import { DashboardScreen } from '../screens/DashboardScreen';
+import { CreateSaleScreen } from '../screens/CreateSaleScreen';
+import { EditProductScreen } from '../screens/EditProductScreen';
 import { LoginScreen } from '../screens/LoginScreen';
 import { ProductsScreen } from '../screens/ProductsScreen';
 import type { RootStackParamList } from './types';
@@ -33,6 +35,8 @@ export function AppNavigator(): React.JSX.Element {
           <Stack.Screen name="Dashboard" component={DashboardScreen} />
           <Stack.Screen name="Products" component={ProductsScreen} />
           <Stack.Screen name="AddProduct" component={AddProductScreen} />
+          <Stack.Screen name="EditProduct" component={EditProductScreen} />
+          <Stack.Screen name="CreateSale" component={CreateSaleScreen} />
         </>
       ) : (
         <Stack.Screen name="Login" component={LoginScreen} />

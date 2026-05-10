@@ -3,4 +3,6 @@ export type RootStackParamList = {
   Dashboard: undefined;
   Products: undefined;
   AddProduct: undefined;
+  EditProduct: { productId: number };
+  CreateSale: undefined;
 };

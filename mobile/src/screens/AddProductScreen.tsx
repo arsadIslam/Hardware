@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { ArrowLeft } from 'lucide-react-native';
@@ -21,33 +20,11 @@ import {
 
 import { createProduct } from '../api/products';
 import type { RootStackParamList } from '../navigation/types';
+import { getApiErrorMessage } from '../utils/apiErrors';
 
 const PRIMARY = '#6B5CE6';
 const TEXT_MAIN = '#0f172a';
 const TEXT_MUTED = '#64748b';
-
-function getApiErrorMessage(err: unknown): string {
-  if (axios.isAxiosError(err) && err.response?.data) {
-    const data = err.response.data as Record<string, unknown>;
-    const errors = data.errors;
-    if (errors && typeof errors === 'object') {
-      const record = errors as Record<string, string[]>;
-      for (const key of Object.keys(record)) {
-        const msgs = record[key];
-        if (Array.isArray(msgs) && typeof msgs[0] === 'string') {
-          return msgs[0];
-        }
-      }
-    }
-    if (typeof data.message === 'string') {
-      return data.message;
-    }
-  }
-  if (err instanceof Error) {
-    return err.message;
-  }
-  return 'Could not save product. Try again.';
-}
 
 function FieldLabel(props: { children: string }): React.JSX.Element {
   return <Text style={styles.fieldLabel}>{props.children}</Text>;
@@ -108,7 +85,7 @@ export function AddProductScreen(): React.JSX.Element {
       });
       navigation.goBack();
     } catch (e) {
-      setError(getApiErrorMessage(e));
+      setError(getApiErrorMessage(e, 'Could not save product. Try again.'));
     } finally {
       setSubmitting(false);
     }

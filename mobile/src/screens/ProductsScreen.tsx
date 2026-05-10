@@ -3,7 +3,14 @@ import {
   useNavigation,
 } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
-import { ArrowLeft, Package, Plus, Search, X } from 'lucide-react-native';
+import {
+  ArrowLeft,
+  ChevronRight,
+  Package,
+  Plus,
+  Search,
+  X,
+} from 'lucide-react-native';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -63,7 +70,13 @@ function formatQty(value: string | number, unit: string | null): string {
   return String(value);
 }
 
-function ProductDetailCard({ item }: { item: Product }): React.JSX.Element {
+function ProductDetailCard({
+  item,
+  showChevron,
+}: {
+  item: Product;
+  showChevron?: boolean;
+}): React.JSX.Element {
   return (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
@@ -76,6 +89,9 @@ function ProductDetailCard({ item }: { item: Product }): React.JSX.Element {
           </Text>
           <Text style={styles.sku}>SKU: {item.product_id}</Text>
         </View>
+        {showChevron ? (
+          <ChevronRight size={22} color="#cbd5e1" strokeWidth={2.5} />
+        ) : null}
       </View>
 
       <View style={styles.detailGrid}>
@@ -205,8 +221,16 @@ export function ProductsScreen(): React.JSX.Element {
   }, [debouncedSearch, hasMore, loading, loadingMore, page]);
 
   const renderItem = useCallback(
-    ({ item }: { item: Product }) => <ProductDetailCard item={item} />,
-    [],
+    ({ item }: { item: Product }) => (
+      <TouchableOpacity
+        activeOpacity={0.92}
+        onPress={() => {
+          navigation.navigate('EditProduct', { productId: item.id });
+        }}>
+        <ProductDetailCard item={item} showChevron />
+      </TouchableOpacity>
+    ),
+    [navigation],
   );
 
   const keyExtractor = useCallback((item: Product) => String(item.id), []);
@@ -422,7 +446,7 @@ const styles = StyleSheet.create({
   },
   cardHeader: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     marginBottom: 14,
     gap: 12,
   },
