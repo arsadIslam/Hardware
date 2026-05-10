@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { AddProductScreen } from '../screens/AddProductScreen';
 import { DashboardScreen } from '../screens/DashboardScreen';
 import { CreateSaleScreen } from '../screens/CreateSaleScreen';
+import { SaleSummaryScreen } from '../screens/SaleSummaryScreen';
 import { EditProductScreen } from '../screens/EditProductScreen';
 import { LoginScreen } from '../screens/LoginScreen';
 import { ProductsScreen } from '../screens/ProductsScreen';
@@ -37,6 +38,7 @@ export function AppNavigator(): React.JSX.Element {
           <Stack.Screen name="AddProduct" component={AddProductScreen} />
           <Stack.Screen name="EditProduct" component={EditProductScreen} />
           <Stack.Screen name="CreateSale" component={CreateSaleScreen} />
+          <Stack.Screen name="SaleSummary" component={SaleSummaryScreen} />
         </>
       ) : (
         <Stack.Screen name="Login" component={LoginScreen} />

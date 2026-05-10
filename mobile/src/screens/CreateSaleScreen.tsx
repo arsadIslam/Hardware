@@ -23,7 +23,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Switch,
   Text,
   TextInput,
   TouchableOpacity,
@@ -59,6 +58,21 @@ const GREEN_BG = '#ecfdf5';
 const RED = '#dc2626';
 
 type PaymentKey = CreateSalePayload['payment_mode'];
+
+function paymentModeLabel(mode: PaymentKey): string {
+  switch (mode) {
+    case 'cash':
+      return 'Cash';
+    case 'upi':
+      return 'UPI';
+    case 'partial':
+      return 'Partial payment';
+    case 'due':
+      return 'Credit';
+    default:
+      return mode;
+  }
+}
 
 type DraftLine = {
   key: string;
@@ -231,7 +245,6 @@ export function CreateSaleScreen(): React.JSX.Element {
 
   const [paidInput, setPaidInput] = useState('');
   const [notes, setNotes] = useState('');
-  const [printInvoice, setPrintInvoice] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -492,11 +505,49 @@ export function CreateSaleScreen(): React.JSX.Element {
     setSubmitting(true);
     try {
       const res = await createSale(payload);
-      const invNo = res.invoice.invoice_number ?? `#${res.invoice.id}`;
-      const printNote = printInvoice ? '\n(Printing can be wired later.)' : '';
-      Alert.alert('Sale recorded', `${res.message}\n${invNo}${printNote}`, [
-        { text: 'OK', onPress: () => navigation.goBack() },
-      ]);
+      const inv = res.invoice;
+      const invTotal = Number(inv.total);
+      const apiPaid = inv.amount_paid != null ? Number(inv.amount_paid) : null;
+      const apiBal = inv.balance_due != null ? Number(inv.balance_due) : null;
+
+      let changeAmount: number | null = null;
+      if (paymentMode === 'cash' || paymentMode === 'upi') {
+        changeAmount = changeDue > 0 ? changeDue : null;
+      }
+
+      let balanceDue: number | null = null;
+      if (apiBal != null && apiBal > 0) {
+        balanceDue = apiBal;
+      } else if (paymentMode === 'due' && invTotal > 0) {
+        balanceDue = invTotal;
+      }
+
+      navigation.replace('SaleSummary', {
+        invoiceId: inv.id,
+        invoiceNumber: inv.invoice_number ?? `#${inv.id}`,
+        customerName: customerName.trim() || null,
+        customerPhone: customerPhone.trim() || null,
+        lines: lines.map((line) => {
+          const q = parseNum(line.quantity);
+          const up = parseNum(line.unit_price);
+          const ld = parseNum(line.line_discount);
+          return {
+            name: line.name,
+            sku: line.sku,
+            quantity: q,
+            unitPrice: effectiveUnitPrice(q, up, ld),
+            lineTotal: lineAmount(q, up, ld),
+          };
+        }),
+        subtotal: subtotalLines,
+        invoiceDiscount: invoiceDiscountAmount,
+        grandTotal: invTotal,
+        paymentModeLabel: paymentModeLabel(paymentMode),
+        amountPaid: apiPaid,
+        changeAmount,
+        balanceDue,
+        notes: notes.trim() || null,
+      });
     } catch (e) {
       setError(getSaleErrorMessage(e));
     } finally {
@@ -1016,15 +1067,6 @@ export function CreateSaleScreen(): React.JSX.Element {
                   Full amount will be recorded as credit for this customer.
                 </Text>
               )}
-              <View style={styles.printRow}>
-                <Text style={styles.printLbl}>Print invoice</Text>
-                <Switch
-                  value={printInvoice}
-                  onValueChange={setPrintInvoice}
-                  trackColor={{ false: '#e2e8f0', true: PRIMARY_SOFT }}
-                  thumbColor={printInvoice ? PRIMARY : '#f4f4f5'}
-                />
-              </View>
             </Card>
           </View>
 
@@ -1580,16 +1622,6 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     marginBottom: 8,
   },
-  printRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 8,
-    paddingTop: 12,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#f1f5f9',
-  },
-  printLbl: { fontSize: 14, fontWeight: '600', color: TEXT_MAIN },
   notes: {
     borderWidth: 1,
     borderColor: '#e2e8f0',
