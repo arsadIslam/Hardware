@@ -23,7 +23,9 @@ import {
   deleteProduct,
   fetchProduct,
   updateProduct,
+  type ProductImageFile,
 } from '../api/products';
+import { ProductImageField } from '../components/ProductImageField';
 import type { RootStackParamList } from '../navigation/types';
 import { getApiErrorMessage } from '../utils/apiErrors';
 
@@ -67,6 +69,8 @@ export function EditProductScreen(): React.JSX.Element {
   const [quantity, setQuantity] = useState('');
   const [unit, setUnit] = useState('');
   const [location, setLocation] = useState('');
+  const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
+  const [image, setImage] = useState<ProductImageFile | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -85,6 +89,8 @@ export function EditProductScreen(): React.JSX.Element {
       setQuantity(toInputNumber(p.available_quantity));
       setUnit(p.quantity_unit ?? '');
       setLocation(p.location ?? '');
+      setExistingImageUrl(p.image_url ?? null);
+      setImage(null);
     } catch {
       setError('Could not load product.');
     } finally {
@@ -137,6 +143,7 @@ export function EditProductScreen(): React.JSX.Element {
         available_quantity: qty,
         quantity_unit: unit.trim() || null,
         location: location.trim() || null,
+        image,
       });
       navigation.goBack();
     } catch (e) {
@@ -208,6 +215,21 @@ export function EditProductScreen(): React.JSX.Element {
             ]}
             showsVerticalScrollIndicator={false}>
             {error ? <Text style={styles.bannerError}>{error}</Text> : null}
+
+            <ProductImageField
+              localUri={image?.uri ?? null}
+              remoteUrl={existingImageUrl}
+              onChange={(file) => {
+                if (file) {
+                  setImage(file);
+                } else if (image) {
+                  setImage(null);
+                } else {
+                  setExistingImageUrl(null);
+                }
+              }}
+              disabled={submitting || deleting}
+            />
 
             <FieldLabel>SKU (product ID)</FieldLabel>
             <TextInput

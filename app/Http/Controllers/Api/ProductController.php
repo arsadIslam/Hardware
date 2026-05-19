@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class ProductController extends Controller
@@ -34,6 +36,7 @@ class ProductController extends Controller
         $validated = $request->validate([
             'product_id' => ['nullable', 'string', 'max:255', Rule::unique('products', 'product_id')],
             'name' => ['required', 'string', 'max:255'],
+            'image' => ['nullable', 'image', 'max:5120'],
             'selling_price' => ['required', 'numeric', 'min:0'],
             'buying_price' => ['nullable', 'numeric', 'min:0'],
             'available_quantity' => ['required', 'numeric', 'min:0'],
@@ -47,6 +50,11 @@ class ProductController extends Controller
         } else {
             $validated['product_id'] = $sku;
         }
+
+        if ($request->hasFile('image')) {
+            $validated['image_path'] = $this->storeUploadedImage($request->file('image'));
+        }
+        unset($validated['image']);
 
         $product = Product::create($validated);
 
@@ -97,12 +105,20 @@ class ProductController extends Controller
                 Rule::unique('products', 'product_id')->ignore($product->id),
             ],
             'name' => ['sometimes', 'required', 'string', 'max:255'],
+            'image' => ['nullable', 'image', 'max:5120'],
             'selling_price' => ['sometimes', 'required', 'numeric', 'min:0'],
             'buying_price' => ['nullable', 'numeric', 'min:0'],
             'available_quantity' => ['sometimes', 'required', 'numeric', 'min:0'],
             'quantity_unit' => ['nullable', 'string', 'max:16'],
             'location' => ['nullable', 'string', 'max:255'],
         ]);
+
+        if ($request->hasFile('image')) {
+            $this->deleteStoredImage($product->image_path);
+            $validated['image_path'] = $this->storeUploadedImage($request->file('image'));
+        }
+
+        unset($validated['image']);
 
         $product->update($validated);
 
@@ -111,8 +127,23 @@ class ProductController extends Controller
 
     public function destroy(Product $product)
     {
+        $this->deleteStoredImage($product->image_path);
         $product->delete();
 
         return response()->noContent();
+    }
+
+    private function storeUploadedImage(UploadedFile $file): string
+    {
+        return $file->store('products', 'public');
+    }
+
+    private function deleteStoredImage(?string $path): void
+    {
+        if ($path === null || $path === '') {
+            return;
+        }
+
+        Storage::disk('public')->delete($path);
     }
 }

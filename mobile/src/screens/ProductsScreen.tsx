@@ -15,6 +15,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   ActivityIndicator,
   FlatList,
+  Image,
   Platform,
   RefreshControl,
   StyleSheet,
@@ -33,6 +34,7 @@ import {
   type Product,
 } from '../api/products';
 import type { RootStackParamList } from '../navigation/types';
+import { resolveMediaUrl } from '../utils/mediaUrl';
 
 const PRIMARY = '#6B5CE6';
 const TEXT_MAIN = '#0f172a';
@@ -77,12 +79,18 @@ function ProductDetailCard({
   item: Product;
   showChevron?: boolean;
 }): React.JSX.Element {
+  const thumbUri = resolveMediaUrl(item.image_url);
+
   return (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
-        <View style={styles.cardIconWrap}>
-          <Package size={20} color="#7c3aed" strokeWidth={2.25} />
-        </View>
+        {thumbUri ? (
+          <Image source={{ uri: thumbUri }} style={styles.cardThumb} />
+        ) : (
+          <View style={styles.cardIconWrap}>
+            <Package size={20} color="#7c3aed" strokeWidth={2.25} />
+          </View>
+        )}
         <View style={styles.cardTitleBlock}>
           <Text style={styles.productName} numberOfLines={2}>
             {item.name}
@@ -457,6 +465,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#EDE9FE',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  cardThumb: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: '#e2e8f0',
   },
   cardTitleBlock: {
     flex: 1,

@@ -18,7 +18,11 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 
-import { createProduct } from '../api/products';
+import {
+  createProduct,
+  type ProductImageFile,
+} from '../api/products';
+import { ProductImageField } from '../components/ProductImageField';
 import type { RootStackParamList } from '../navigation/types';
 import { getApiErrorMessage } from '../utils/apiErrors';
 
@@ -40,6 +44,7 @@ export function AddProductScreen(): React.JSX.Element {
   const [quantity, setQuantity] = useState('');
   const [unit, setUnit] = useState('');
   const [location, setLocation] = useState('');
+  const [image, setImage] = useState<ProductImageFile | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -82,6 +87,7 @@ export function AddProductScreen(): React.JSX.Element {
         available_quantity: qty,
         quantity_unit: unit.trim() || null,
         location: location.trim() || null,
+        image: image ?? undefined,
       });
       navigation.goBack();
     } catch (e) {
@@ -122,6 +128,13 @@ export function AddProductScreen(): React.JSX.Element {
           <Text style={styles.helper}>
             Product ID is assigned automatically (e.g. HW-000001).
           </Text>
+
+          <ProductImageField
+            localUri={image?.uri ?? null}
+            remoteUrl={null}
+            onChange={setImage}
+            disabled={submitting}
+          />
 
           <FieldLabel>Product name</FieldLabel>
           <TextInput
